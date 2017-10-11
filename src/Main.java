@@ -1,5 +1,8 @@
 import java.util.*;
 import java.io.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static java.nio.file.Files.readAllLines;
 
 public class Main {
     public static String[] stop_words = {"↬", "à", ":", "-", "le", "la", "de", "des", "et", "les",
@@ -11,18 +14,18 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
 
         // All Work
-        long startTime_allWork = System.currentTimeMillis();
+        /*long startTime_allWork = System.currentTimeMillis();
         //all_work_with_specific_text("data/CC-MAIN-20170322212949-00140-ip-10-233-31-227.ec2.internal.warc.wet");
         all_work_with_specific_text("data/input.txt");
         long endTime_allWork = System.currentTimeMillis();
         long totalTime_allWork = endTime_allWork - startTime_allWork;
-        System.out.println("\n\n" + totalTime_allWork + "ms");
-        // full result: 220944ms = 3min40 in sequential
+        System.out.println("\n\n" + totalTime_allWork + "ms");*/
+        // full result sequential : 220944ms = 3min40 in sequential
 
 
         // Just Top50
         /*long startTime_top50 = System.currentTimeMillis();
-        HashMap<String, Integer> wordCounts = get_word_count("deontologie_police_nationale.txt");
+        TreeMap<String, Integer> wordCounts = get_word_count("data/deontologie_police_nationale.txt");
         TreeMap<String,Integer> sorted_map = get_occurences_sorted(wordCounts);
         TreeMap<String,Integer> sorted_map_top50 = get_top_50(sorted_map, wordCounts);
         for(Map.Entry<String,Integer> entry : sorted_map_top50.entrySet()) {
@@ -34,13 +37,53 @@ public class Main {
         long totalTime_top50 = endTime_top50 - startTime_top50;
         System.out.println("\n\n" + totalTime_top50 + "ms");*/
 
+
+        // THREADS ! //
+        long startTime_allWork = System.currentTimeMillis();
+        Scanner input = new Scanner(new File("data/CC-MAIN-20170322212949-00140-ip-10-233-31-227.ec2.internal.warc.wet"));
+        ConcurrentHashMap<String, Integer> wordCounts = new ConcurrentHashMap<String, Integer>();
+
+
+        Thread t1 = new Share(wordCounts, input);
+        Thread t2 = new Share(wordCounts, input);
+        Thread t3 = new Share(wordCounts, input);
+
+        t1.run();
+        t2.run();
+        t3.run();
+
+        try {
+            t1.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            t2.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            t3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(wordCounts);
+        long endTime_allWork = System.currentTimeMillis();
+        long totalTime_allWork = endTime_allWork - startTime_allWork;
+        System.out.println("\n\n" + totalTime_allWork + "ms");
+
+        // Word count non trié gros fichier en sequentiel: 3,48621667 min
+        // Word count non trié gros fichier avec 3 threads: 2,93243333 min
     }
 
-    public static HashMap<String, Integer> get_word_count(String filename) throws FileNotFoundException {
+
+
+    public static TreeMap<String, Integer> get_word_count(String filename) throws FileNotFoundException {
         Scanner input = new Scanner(new File(filename));
         Set<String> stopWordsSet = new HashSet<String>();
         Collections.addAll(stopWordsSet, stop_words);
-        HashMap<String, Integer> wordCounts = new HashMap<String, Integer>();
+        TreeMap<String, Integer> wordCounts = new TreeMap<String, Integer>();
         while (input.hasNext()) {
             String next = input.next().toLowerCase()
                     .replace(".", "")
@@ -69,7 +112,7 @@ public class Main {
     }
 
 
-    public static void show_alphabetic_sort(HashMap<String, Integer> wordCounts) throws FileNotFoundException {
+    public static void show_alphabetic_sort(TreeMap<String, Integer> wordCounts) throws FileNotFoundException {
         Map<String, Integer> map = new TreeMap<String, Integer>(wordCounts);
         Set set = map.entrySet();
         Iterator iterator = set.iterator();
@@ -80,14 +123,14 @@ public class Main {
     }
 
 
-    public static TreeMap<String,Integer> get_occurences_sorted(HashMap<String, Integer> wordCounts) throws FileNotFoundException {
+    public static TreeMap<String,Integer> get_occurences_sorted(TreeMap<String, Integer> wordCounts) throws FileNotFoundException {
         ValueComparator bvc = new ValueComparator(wordCounts);
         TreeMap<String,Integer> sorted_map = new TreeMap<String,Integer>(bvc);
         sorted_map.putAll(wordCounts);
         return sorted_map;
     }
 
-    public static TreeMap<String,Integer> get_top_50(TreeMap<String,Integer> sorted_map, HashMap<String, Integer> wordCounts) {
+    public static TreeMap<String,Integer> get_top_50(TreeMap<String,Integer> sorted_map, TreeMap<String, Integer> wordCounts) {
         ValueComparator bvc = new ValueComparator(wordCounts);
         TreeMap<String, Integer> myNewMap = sorted_map.entrySet().stream()
                 .limit(50)
@@ -99,7 +142,7 @@ public class Main {
 
 
     public static void all_work_with_specific_text(String filename) throws FileNotFoundException {
-        HashMap<String, Integer> wordCounts = get_word_count(filename);
+        TreeMap<String, Integer> wordCounts = get_word_count(filename);
         System.out.println("Question 1");
         for (String word : wordCounts.keySet()) {
             int count = wordCounts.get(word);
@@ -150,19 +193,3 @@ public class Main {
     }
 }
 
-class ValueComparator implements Comparator<String> {
-
-    Map<String, Integer> base;
-
-    public ValueComparator(Map<String, Integer> base) {
-        this.base = base;
-    }
-
-    public int compare(String a, String b) {
-        if (base.get(a) >= base.get(b)) {
-            return -1;
-        } else {
-            return 1;
-        }
-    }
-}
