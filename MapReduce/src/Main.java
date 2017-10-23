@@ -40,7 +40,7 @@ public class Main {
 
         // THREADS ! //
         long startTime_allWork = System.currentTimeMillis();
-        Scanner input = new Scanner(new File("data/CC-MAIN-20170322212949-00140-ip-10-233-31-227.ec2.internal.warc.wet"));
+        Scanner input = new Scanner(new File("data/deontologie_police_nationale.txt"));
         ConcurrentHashMap<String, Integer> wordCounts = new ConcurrentHashMap<String, Integer>();
 
 
