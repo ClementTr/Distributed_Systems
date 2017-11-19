@@ -14,6 +14,7 @@ public class My_Process {
 	Job standard_Job;
 	Thread error_reader;
 	Thread standard_reader;
+	String s_output;
 		
 	public My_Process(int time_seconds, ArrayList<String>cmd) {
 		standard_output = new ArrayBlockingQueue<String>(200);
@@ -47,11 +48,19 @@ public class My_Process {
 		this.error_reader.start();
 	}
 	
+	public String get_standard() {
+		return this.s_output;
+	}
+
+	
 	public void launch_process() throws IOException, InterruptedException {
 		init_process();
 		
-		String s_output = this.standard_Job.get_abqueue().poll(this.time_seconds, TimeUnit.SECONDS);
+		//String s_output = this.standard_Job.get_abqueue().poll(this.time_seconds, TimeUnit.SECONDS);
+		this.s_output = this.standard_Job.get_abqueue().poll(this.time_seconds, TimeUnit.SECONDS);
 		String e_output = this.error_Job.get_abqueue().poll(this.time_seconds, TimeUnit.SECONDS);
+		
+		
 		
 		if (s_output != "OFF" && s_output != null){
 			System.out.println(s_output);
@@ -66,6 +75,7 @@ public class My_Process {
 			this.error_reader.interrupt();
 			this.proc.destroy();
 		}
+				
 	}
 	
 	

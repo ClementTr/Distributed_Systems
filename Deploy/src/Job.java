@@ -16,7 +16,7 @@ class Job implements Runnable {
         this.ab_queue = ab_queue;
         this.my_cmd = cmd;
     }
-    
+
     
     @Override
     public void run() {
@@ -34,8 +34,8 @@ class Job implements Runnable {
         } catch (InterruptedException e) {
 			System.out.println(type + "> Timout: "+ this.my_cmd);
 		}
+        
     }
-    
     
     public ArrayBlockingQueue<String> get_abqueue(){
     	    return this.ab_queue;
