@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -21,12 +22,13 @@ public class Slave {
 			file_to_map= args[1];
 			mode0(file_to_map);
 		} else {
-			file_to_map= args[2];
+			String number_files = args[2];
+			file_to_map= args[3];
 			ArrayList<String> files_to_split = new ArrayList<String>();
-			for ( int j=2; j<args.length; j++ ) {
+			for ( int j=3; j<args.length; j++ ) {
 				files_to_split.add(args[j]);
 			}
-			mode1(files_to_split, word);
+			mode1(files_to_split, word, number_files);
 		}
 	}
 	
@@ -39,10 +41,12 @@ public class Slave {
 		input = new Scanner(new File(file));
 		while (input.hasNext()) {
 			String next = input.next().toLowerCase();
-	         if (!wordCounts.containsKey(next)) {
+	         /*if (!wordCounts.containsKey(next)) {
 	        	   wordCounts.put(next, 1);
 	        	   writer.println(next + " 1");
-	         }
+	         }*/
+			wordCounts.put(next, 1);
+     	    writer.println(next + " 1");
 		}
         writer.close();
         output = "";
@@ -53,12 +57,13 @@ public class Slave {
 	}
 	
 	
-	public static void mode1(ArrayList<String> files_to_split, String word) throws FileNotFoundException, UnsupportedEncodingException {
+	public static void mode1(ArrayList<String> files_to_split, String word, String number_files) throws IOException {
 		int cpt = 0;
+		int my_number_files = Integer.parseInt(number_files);
 		
 		File repo = new File("/tmp/tailleur/splits/");
 		repo.mkdirs();
-		PrintWriter writer = new PrintWriter("/tmp/tailleur/splits/SM1.txt", "UTF-8");
+		PrintWriter writer = new PrintWriter("/tmp/tailleur/splits/SM" + my_number_files + ".txt", "UTF-8");
 		for ( int j=0; j<files_to_split.size(); j++ ) {
 			input = new Scanner(new File(files_to_split.get(j)));
 			while (input.hasNext()) {
@@ -72,9 +77,16 @@ public class Slave {
         writer.close();
         
         File repo1 = new File("/tmp/tailleur/reduces/");
-		repo1.mkdirs();
-		PrintWriter writer1 = new PrintWriter("/tmp/tailleur/reduces/RM1.txt", "UTF-8");
-		writer1.println(word + " " + cpt);
-        writer1.close();
+        if (my_number_files == 0) {
+        		repo1.mkdirs();
+        		PrintWriter writer1 = new PrintWriter("/tmp/tailleur/reduces/RM.txt", "UTF-8");
+        		writer1.println(word + " " + cpt);
+            writer1.close();
+        } else {
+        		File writer1 = new File("/tmp/tailleur/reduces/RM.txt");
+        		FileWriter my_writer = new FileWriter(writer1, true);
+        		my_writer.write(word + " " + cpt + "\n");
+        		my_writer.close();
+        }
 	}
 }
