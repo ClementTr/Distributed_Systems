@@ -1,6 +1,6 @@
-## Statistics
+## Distributed Systems
 
-Distributed Systems Course: Telecom ParisTech - Specialized Master in Big Data/Data Science
+Distributed Systems Course: Telecom ParisTech - Advanced Master in Big Data/Data Science
 <br>
 
 ### How does it work ?
